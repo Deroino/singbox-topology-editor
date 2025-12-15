@@ -1,0 +1,9 @@
+bin/
+temp/
+*.log
+__pycache__/
+.DS_Store
+config/
+
+# 忽略 sing-box-examples 目录
+sing-box-examples/

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sing-Box Topology Editor </title>
+    <link rel="icon" type="image/png" href="icon.png?v=1">
+    <link rel="stylesheet" href="css/style.css?v=12">
+    <link rel="stylesheet" href="css/drag.css?v=12">
+    <link rel="stylesheet" href="css/toast.css?v=12">
+    <!-- Preload font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="toast-container"></div>
+    <div class="app-container">
+        <header>
+            <h1>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+                Singbox-Topology-Editor
+            </h1>
+            <div class="controls">
+                <button id="btn-start" class="btn-success" onclick="toggleService()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Start Core</span>
+                </button>
+                <button class="btn-primary" onclick="restartCore()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>Restart</span>
+                </button>
+                <button class="btn-orange" onclick="openConfigPanel()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Config</span>
+                </button>
+            </div>
+        </header>
+        
+        <main>
+            <aside class="sidebar">
+                <div>
+                    <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Navigation</span>
+                        <button class="btn-xxs" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Navigation">☰</button>
+                    </h3>
+                    <ul class="nav-list">
+                        <li class="active">Editor</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3>Profiles</h3>
+                    <ul class="nav-list" id="profile-list">
+                        <!-- Profiles loaded via JS -->
+                    </ul>
+                    <button style="width:100%; margin-top:10px" onclick="createNewProfile()">+ New Profile</button>
+                </div>
+
+                <div>
+                    <h3>Node Library</h3>
+                    <div class="node-library">
+                        <div class="node-lib-toolbar">
+                            <button class="btn-xs" style="width:100%; margin-bottom:5px" onclick="openNodeEditor()">+ New Node</button>
+                            <button class="btn-xs" style="width:100%" onclick="openImportModal()">📥 Import Links</button>
+                        </div>
+                        <ul class="node-lib-list" id="node-library-list"></ul>
+                    </div>
+                </div>
+            </aside>
+            <div id="sidebar-resizer"></div>
+
+            <div class="workspace">
+                <div class="toolbar">
+                    <button onclick="openNodeEditor()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add Node
+                    </button>
+                    <button onclick="addLayer()">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        Add Layer (Hop)
+                    </button>
+                </div>
+                
+                <div id="chain-editor">
+                    <svg id="connections-layer"></svg>
+                    <div id="nodes-layer"></div>
+                </div>
+
+                <div id="log-resizer"></div>
+                <!-- Logs Panel -->
+                <div id="console-container">
+                    <div class="console-header">
+                        <span>Logs</span>
+                        <div class="console-actions">
+                            <button class="btn-xs" id="btn-console-toggle" onclick="toggleConsole()">Hide</button>
+                            <button class="btn-xs" onclick="clearConsole()">Clear</button>
+                        </div>
+                    </div>
+                    <div id="console-log">
+                        <div class="log-entry info">> System initialized. Ready.</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <button id="floating-console-toggle" class="btn-xs" onclick="toggleConsole()" title="Show/Hide Logs">Logs</button>
+        <button id="floating-sidebar-toggle" class="btn-xs" onclick="toggleSidebar()" title="Show/Hide Navigation">Nav</button>
+
+        <!-- Inbound Config Modal -->
+        <div id="inbound-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Configure Inbound</h3>
+                    <span onclick="closeInboundModal()" class="close-btn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Listen Port</label>
+                        <input type="number" id="inbound-port" placeholder="10808" value="10808">
+                    </div>
+                    <div class="form-group">
+                        <label>Tag (Optional)</label>
+                        <input type="text" id="inbound-tag" placeholder="mixed-in">
+                        <small style="color:var(--text-muted)">If empty, auto-generated as mixed-{port}</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="closeInboundModal()">Cancel</button>
+                    <button class="btn-primary" onclick="confirmInbound()">Save Inbound</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Modal -->
+        <div id="profile-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Create Profile</h3>
+                    <span onclick="closeProfileModal()" class="close-btn">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Profile Name</label>
+                        <input type="text" id="profile-name" placeholder="Home" autocomplete="off">
+                        <small style="color:var(--text-muted)">If missing, ".json" is added automatically</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="closeProfileModal()">Cancel</button>
+                    <button class="btn-primary" onclick="confirmProfileModal()">Create</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Node Configuration Modal -->
+        <div id="config-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid #3f3f46; display:flex; justify-content:space-between;">
+                    <h3 style="margin:0">Edit Node</h3>
+                    <span onclick="closeModal()" style="cursor:pointer">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label>Tag (Unique ID)</label>
+                        <input type="text" id="node-tag" placeholder="us-proxy-1">
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="node-type" onchange="updateFormFields()">
+	                            <optgroup label="Routing">
+	                                <option value="selector">Selector (Manual)</option>
+	                                <option value="urltest">URL Test (Auto)</option>
+	                                <option value="roundrobin">Round Robin (LB)</option>
+	                            </optgroup>
+                            <optgroup label="Protocols">
+                                <option value="shadowsocks">Shadowsocks</option>
+                                <option value="vmess">VMess</option>
+                                <option value="vless">VLESS</option>
+                                <option value="trojan">Trojan</option>
+                                <option value="hysteria2">Hysteria 2</option>
+                                <option value="socks">SOCKS5</option>
+                                <option value="http">HTTP</option>
+                            </optgroup>
+                            <optgroup label="Actions">
+                                <option value="direct">Direct</option>
+                                <option value="block">Block</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div id="dynamic-fields"></div>
+                </div>
+                <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #3f3f46; display:flex; justify-content:flex-end; gap:10px;">
+                    <button class="btn-danger" onclick="deleteCurrentNode()">Delete</button>
+                    <button class="btn-primary" onclick="saveNodeConfig()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Node Picker Modal -->
+        <div id="node-picker-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid #3f3f46; display:flex; justify-content:space-between;">
+                    <h3 style="margin:0">Select Node</h3>
+                    <span onclick="closeNodePicker()" style="cursor:pointer">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label>Choose from library</label>
+                        <select id="node-picker-select"></select>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #3f3f46; display:flex; justify-content:flex-end; gap:10px;">
+                    <button onclick="closeNodePicker()">Cancel</button>
+                    <button class="btn-primary" onclick="confirmNodePicker()">Add to Layer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Import Share Links Modal -->
+        <div id="import-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid #3f3f46; display:flex; justify-content:space-between;">
+                    <h3 style="margin:0">Import Share Links</h3>
+                    <span onclick="closeImportModal()" style="cursor:pointer">&times;</span>
+                </div>
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="form-group">
+                        <label>Paste share links or subscription (Base64 supported)</label>
+                        <textarea id="import-text" rows="10" style="width:100%; font-family: monospace; padding:10px; border:1px solid #3f3f46; background:#1a1a1a; color:#fff; border-radius:4px;" placeholder="Paste vless://, vmess://, trojan://, hysteria2://, or ss:// links here..."></textarea>
+                        <small style="color:#9ca3af; margin-top:5px; display:block;">Supports: vless://, vmess://, trojan://, hysteria2://, ss://  (one per line or Base64 encoded)</small>
+                    </div>
+                </div>
+                <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #3f3f46; display:flex; justify-content:flex-end; gap:10px;">
+                    <button onclick="closeImportModal()">Cancel</button>
+                    <button class="btn-primary" onclick="confirmImport()">Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selector Config Modal -->
+    <div id="selector-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 15px 20px; border-bottom: 1px solid #3f3f46; display:flex; justify-content:space-between;">
+                <h3 style="margin:0">Selector Settings</h3>
+                <span onclick="closeSelectorModal()" style="cursor:pointer">&times;</span>
+            </div>
+                <div class="modal-body" style="padding: 20px;">
+                <div style="color:var(--text-muted); font-size:12px; margin-bottom:12px;">
+                    Sing-box selector is manual and does not support round-robin. You can only set the default outbound here.
+                </div>
+                <div class="form-group">
+                    <label>Inbound</label>
+                    <div class="readonly-box" id="selector-inbound-tag"></div>
+                </div>
+                <div class="form-group">
+                    <label>Default Outbound</label>
+                    <select id="selector-default"></select>
+                    <small style="color:var(--text-muted);">This is the default outbound. For automatic switching, use a URL Test node instead.</small>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #3f3f46; display:flex; justify-content:flex-end; gap:10px;">
+                <button onclick="closeSelectorModal()">Cancel</button>
+                <button class="btn-primary" onclick="saveSelectorConfig()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Config Drawer -->
+    <div id="config-overlay" class="config-overlay" onclick="closeConfigPanel()"></div>
+    <aside id="config-panel" class="config-panel">
+        <div class="config-panel-header">
+            <div>
+                <div class="config-panel-title">Sing-Box Config</div>
+                <div class="config-panel-subtitle">Live preview of the generated config</div>
+            </div>
+            <button class="btn-xs btn-danger-text" onclick="closeConfigPanel()">×</button>
+        </div>
+        <div class="config-panel-body">
+            <textarea id="config-editor" spellcheck="false" readonly></textarea>
+        </div>
+        <div class="config-panel-footer">
+            <div style="font-size:11px;color:var(--text-muted);">Auto-refreshes after edits or drag-and-drop</div>
+            <button id="config-export-btn" class="btn-orange" onclick="exportConfig()">Export</button>
+        </div>
+    </aside>
+    <script src="js/toast.js?v=12"></script>
+    <script src="js/sharelink-parser.js?v=12"></script>
+    <script src="js/ui-kit.js?v=12"></script>
+    <script src="js/chain-core.js?v=12"></script>
+    <script src="js/app-ui.js?v=12"></script>
+    <script src="js/app-state.js?v=12"></script>
+    <script src="js/app-drag.js?v=12"></script>
+    <script src="js/app-render.js?v=12"></script>
+    <script src="js/app-inbound.js?v=12"></script>
+    <script src="js/app-modals.js?v=12"></script>
+    <script src="js/app-backend.js?v=12"></script>
+    <script src="js/app.js?v=12"></script>
+</body>
+</html>

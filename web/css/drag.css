@@ -1,0 +1,4 @@
+.layer-container.drag-over {
+    border: 2px dashed var(--accent);
+    background: rgba(59, 130, 246, 0.1);
+}
