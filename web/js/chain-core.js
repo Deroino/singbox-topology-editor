@@ -200,7 +200,37 @@
                 delete o.default;
                 const nextHop = pickNextHop(detours);
                 if (nextHop) {
-                    o.detour = nextHop;
+                    // 检查 nextHop 是否是合理的 detour 目标
+                    // 获取目标节点的类型定义
+                    const getTargetType = (targetTag) => {
+                        // 首先检查是否在当前 layers 中定义
+                        for (const layer of layers) {
+                            for (const node of layer.nodes || []) {
+                                if (node.tag === targetTag) {
+                                    const def = (typeof resolveNodeDefinition === 'function' ? resolveNodeDefinition(node) : null) || node;
+                                    return def.type || node.type;
+                                }
+                            }
+                        }
+                        // 然后检查 nodeLibrary
+                        const libNode = state.nodeLibrary?.find(n => n.tag === targetTag);
+                        if (libNode) {
+                            return libNode.type;
+                        }
+                        return null;
+                    };
+
+                    const nextHopType = getTargetType(nextHop);
+                    const nonDetourableTypes = ['direct', 'block'];
+
+                    // 对于协议出站（如 hysteria2, vmess, vless 等），不允许 detour 到 direct/block
+                    if (nonDetourableTypes.includes(nextHopType) &&
+                        type !== 'selector' && type !== 'urltest') {
+                        // 不设置 detour，而是通过路由规则来处理
+                        delete o.detour;
+                    } else {
+                        o.detour = nextHop;
+                    }
                 } else {
                     delete o.detour;
                 }
