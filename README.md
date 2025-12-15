@@ -1,10 +1,14 @@
 # Sing-Box Topology Editor
 
-A web application for visually editing and managing Sing-Box proxy chain topologies. Features drag-and-drop node editing, multi-hop configuration, profile management, and automatic sing-box core installation.
+A web application for visually editing and managing Sing-Box proxy chain topologies. Features drag-and-drop node editing, multi-hop configuration, profile management, and automatic sing-box core installation.  
+
+⚠️This is a pure vibe coding project. It may contain bugs, unexpected behaviors, and was primarily built for fun and learning.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.7+-green.svg)
 ![Sing-Box](https://img.shields.io/badge/sing--box-1.12.12-orange.svg)
+<img width="2549" height="1225" alt="image" src="https://github.com/user-attachments/assets/49d16fbb-7228-4b54-9ae0-240ebe060aa7" />
+<img width="2554" height="1212" alt="image" src="https://github.com/user-attachments/assets/f31c913b-5ced-4b06-b7e1-20db726fdca3" />
 
 ## Features
 
